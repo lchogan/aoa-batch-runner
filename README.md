@@ -31,14 +31,12 @@ The runner will prompt you through:
 
 ```json
 {
-  "illustratorApp": "/Applications/Adobe Illustrator 2026/Adobe Illustrator.app",
   "scripts": [ ... ]
 }
 ```
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `illustratorApp` | Yes | Full path to the Illustrator `.app` bundle |
 | `scripts` | Yes | Array of script configurations (see below) |
 
 ### Script object
@@ -84,7 +82,7 @@ The runner will prompt you through:
 
 | Field | Required | Description |
 |-------|----------|-------------|
-| `key` | Yes | The key written to `batch-args.json` (read by the Illustrator script) |
+| `key` | Yes | The key written to `batch-args.json` (read by the target script) |
 | `label` | Yes | Heading shown above the choice list in the prompt |
 | `choices` | Yes | Array of `{ value, label }` objects. `value` is written to `batch-args.json`; `label` is shown to the user |
 
@@ -92,7 +90,7 @@ The runner will prompt you through:
 
 ## Template Handling
 
-Each script config points to a single `template.ai` file via `templatePath`. Before execution the runner copies it to `batch-template.ai` in the same directory and opens that copy in Illustrator for each slug. The copy is left open and unsaved after the run so you can inspect the result without risking the original template.
+Each script config points to a single template file via `templatePath`. Before execution the runner copies it to `batch-template.ai` in the same directory and opens that copy in the target app for each slug. The copy is left open and unsaved after the run so you can inspect the result without risking the original template.
 
 ### Template Overrides
 
@@ -177,14 +175,14 @@ Slug (blank for all): jfk
 }
 ```
 
-3. Add the bypass block to your Illustrator script (see below).
+3. Add the bypass block to your script (see below).
 4. Run `node run.js` — your new script will appear in the selection list.
 
 ---
 
 ## How the Dialog Bypass Works
 
-Before each slug is processed, the batch runner writes a file called `batch-args.json` directly next to the configured Illustrator script. The file contains the slug name, slug folder path, and all user-chosen option values:
+Before each slug is processed, the batch runner writes a file called `batch-args.json` directly next to the configured script. The file contains the slug name, slug folder path, and all user-chosen option values:
 
 ```json
 {
@@ -195,7 +193,7 @@ Before each slug is processed, the batch runner writes a file called `batch-args
 }
 ```
 
-The Illustrator script checks for this file when it starts. If found, it reads the values and **skips its interactive dialogs**. The file is deleted immediately after reading, so it has no effect on manual runs from within Illustrator.
+The script checks for this file when it starts. If found, it reads the values and **skips its interactive dialogs**. The file is deleted immediately after reading, so it has no effect on manual runs.
 
 After the script finishes (or if it crashes), the batch runner also performs a safety cleanup to ensure the file is removed.
 
@@ -203,9 +201,9 @@ After the script finishes (or if it crashes), the batch runner also performs a s
 
 ## Error Handling
 
-If the Illustrator script returns a string starting with `ERROR:`, the batch runner treats that slug as failed and displays the error message. This lets your scripts validate the slug and report problems back to the runner.
+If the script returns a string starting with `ERROR:`, the batch runner treats that slug as failed and displays the error message. This lets your scripts validate the slug and report problems back to the runner.
 
-Example in your Illustrator script:
+Example in your script:
 
 ```javascript
 if (!isValidSlug(batchArgs.slug)) {
@@ -220,9 +218,9 @@ The runner also catches crashes and non-zero exits from `osascript` as failures.
 
 ---
 
-## Adding the Bypass to Your Illustrator Script
+## Adding the Bypass to Your Script
 
-Add the following block at the very top of your Illustrator `.jsx` script, before any dialog code:
+Add the following block at the very top of your `.jsx` script, before any dialog code:
 
 ```javascript
 // =============================================================================

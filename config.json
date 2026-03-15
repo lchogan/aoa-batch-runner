@@ -1,8 +1,6 @@
 {
   "_comment": "Batch runner configuration. See README.md for full schema documentation.",
 
-  "illustratorApp": "/Applications/Adobe Illustrator 2026/Adobe Illustrator.app",
-
   "scripts": [
     {
       "name": "Airport Diagram Export",

@@ -29,27 +29,27 @@
  *
  * TEMPLATE HANDLING
  * ─────────────────
- *   Each script config points to a single template.ai file via templatePath.
+ *   Each script config points to a single template file via templatePath.
  *   Before execution the runner copies it to batch-template.ai (same
- *   directory) and opens that copy in Illustrator for each slug. The copy
- *   is left open and unsaved after the run so you can inspect the result
- *   without risking the original template.
+ *   directory) and opens that copy in the target app for each slug. The
+ *   copy is left open and unsaved after the run so you can inspect the
+ *   result without risking the original template.
  *
  * HOW DIALOG BYPASS WORKS
  * ───────────────────────
  *   Before each run this script writes a small JSON file (batch-args.json)
- *   next to the configured Illustrator script. The JSON includes the slug
- *   name, slug folder path, and all option values. The Illustrator script
- *   checks for this file on startup; if found it reads the values and skips
- *   its interactive prompts. The file is deleted by the Illustrator script
- *   immediately after reading, so it never affects manual runs.
+ *   next to the configured script. The JSON includes the slug name, slug
+ *   folder path, and all option values. The script checks for this file on
+ *   startup; if found it reads the values and skips its interactive
+ *   prompts. The file is deleted immediately after reading, so it never
+ *   affects manual runs.
  *
- *   See README.md for how to add bypass support to an Illustrator script.
+ *   See README.md for how to add bypass support to your script.
  *
  * ERROR HANDLING
  * ──────────────
- *   If the Illustrator script returns a string starting with "ERROR:" the
- *   batch runner treats that slug as failed and displays the message.
+ *   If the script returns a string starting with "ERROR:" the batch runner
+ *   treats that slug as failed and displays the message.
  *
  * REQUIREMENTS
  * ────────────
@@ -112,7 +112,7 @@ var APP_CONFIG = {
     }
   },
   photoshop: {
-    appName: "Adobe Photoshop 2026",
+    appName: "Adobe Photoshop",
     openArgs: function(filePath) {
       return [
         "app.displayDialogs = DialogModes.NO;",
@@ -488,7 +488,7 @@ function shellQuote(str) {
     slugsLine = slugNames.join(", ") + "  (from config)";
   } else if (configExcluded.length > 0) {
     slugsLine = slugNames.join(", ") +
-      "  (all except: " + configExcluded.map(function(a) { return a; }).join(", ") + ")";
+      "  (all except: " + configExcluded.join(", ") + ")";
   } else {
     slugsLine = slugNames.join(", ") + "  (all found)";
   }
