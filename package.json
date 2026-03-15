@@ -1,0 +1,12 @@
+{
+  "name": "batch-runner",
+  "version": "1.0.0",
+  "description": "Generic batch runner for Adobe Illustrator scripts across multiple airport folders",
+  "main": "run.js",
+  "scripts": {
+    "start": "node run.js"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}

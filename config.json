@@ -1,0 +1,69 @@
+{
+  "_comment": "Batch runner configuration. See README.md for full schema documentation.",
+
+  "illustratorApp": "/Applications/Adobe Illustrator 2026/Adobe Illustrator.app",
+
+  "scripts": [
+    {
+      "name": "Airport Diagram Export",
+      "app": "illustrator",
+      "scriptPath": "/Users/lukehogan/Documents/startups/aoa/code/export/templates/airport-diagram.jsx",
+      "templatePath": "/Users/lukehogan/Documents/startups/aoa/collections/airport-diagrams/template.ai",
+      "timeoutSeconds": 600,
+      "defaultFolder": "/Users/lukehogan/Documents/startups/aoa/collections/airport-diagrams",
+
+      "_comment_slugs": "Restrict to these slugs (case-insensitive). Empty = all found. Use excludedSlugs to skip specific ones when slugs is empty.",
+      "slugs": [],
+      "excludedSlugs": [],
+
+      "_comment_options": "Options prompted at runtime and written to batch-args.json for the script to read. See README.md.",
+      "options": [
+        {
+          "key": "mode",
+          "label": "Export mode",
+          "choices": [
+            { "value": "1", "label": "Recolor & export only" },
+            {
+              "value": "2",
+              "label": "Re-import diagrams + replace text, then export"
+            },
+            { "value": "3", "label": "Replace text only, then export" },
+            { "value": "4", "label": "Re-import diagrams only, then export" }
+          ]
+        },
+        {
+          "key": "format",
+          "label": "Export format",
+          "choices": [
+            { "value": "1", "label": "PNG" },
+            { "value": "2", "label": "PDF" }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Airport Diagram Post Processing",
+      "app": "illustrator",
+      "scriptPath": "/Users/lukehogan/Documents/startups/aoa/code/post-pro/process_layers.jsx",
+      "templatePath": "/Users/lukehogan/Documents/startups/aoa/collections/airport-diagrams/template.ai",
+      "timeoutSeconds": 600,
+      "defaultFolder": "/Users/lukehogan/Documents/startups/aoa/collections/airport-diagrams",
+
+      "_comment_slugs": "Restrict to these slugs (case-insensitive). Empty = all found. Use excludedSlugs to skip specific ones when slugs is empty.",
+      "slugs": ["bur", "anc"],
+      "excludedSlugs": [],
+
+      "_comment_options": "Options prompted at runtime and written to batch-args.json for the script to read. See README.md.",
+      "options": [
+        {
+          "key": "closeAfterSave",
+          "label": "Close After Save",
+          "choices": [
+            { "value": "1", "label": "Yes" },
+            { "value": "2", "label": "No" }
+          ]
+        }
+      ]
+    }
+  ]
+}
