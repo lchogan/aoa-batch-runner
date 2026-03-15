@@ -6,9 +6,9 @@
       "name": "Airport Diagram Export",
       "app": "illustrator",
       "scriptPath": "/Users/lukehogan/Documents/startups/aoa/code/export/templates/airport-diagram.jsx",
-      "templatePath": "/Users/lukehogan/Documents/startups/aoa/collections/airport-diagrams/template.ai",
+      "templatePath": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/templates/template.ai",
       "timeoutSeconds": 600,
-      "defaultFolder": "/Users/lukehogan/Documents/startups/aoa/collections/airport-diagrams",
+      "defaultFolder": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/exports",
 
       "_comment_slugs": "Restrict to these slugs (case-insensitive). Empty = all found. Use excludedSlugs to skip specific ones when slugs is empty.",
       "slugs": [],
@@ -16,19 +16,6 @@
 
       "_comment_options": "Options prompted at runtime and written to batch-args.json for the script to read. See README.md.",
       "options": [
-        {
-          "key": "mode",
-          "label": "Export mode",
-          "choices": [
-            { "value": "1", "label": "Recolor & export only" },
-            {
-              "value": "2",
-              "label": "Re-import diagrams + replace text, then export"
-            },
-            { "value": "3", "label": "Replace text only, then export" },
-            { "value": "4", "label": "Re-import diagrams only, then export" }
-          ]
-        },
         {
           "key": "format",
           "label": "Export format",
