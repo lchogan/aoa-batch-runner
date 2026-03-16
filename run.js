@@ -113,15 +113,14 @@ var APP_CONFIG = {
   },
   photoshop: {
     appName: "Adobe Photoshop",
+    useDoJavascript: false,
     openArgs: function(filePath) {
-      return [
-        "app.displayDialogs = DialogModes.NO;",
-        "app.open(File(" + JSON.stringify(filePath) + "));",
-        "app.displayDialogs = DialogModes.ALL;"
-      ].join(" ");
+      return 'tell application "Adobe Photoshop" to open (POSIX file ' +
+        JSON.stringify(filePath) + ')';
     },
     runArgs: function(scriptPath) {
-      return "$.evalFile(" + JSON.stringify(scriptPath) + ")";
+      return 'do script (POSIX file ' + JSON.stringify(scriptPath) +
+        ') as alias';
     }
   }
 };
@@ -283,7 +282,8 @@ function prepareTemplate(templatePath) {
   if (!fs.existsSync(templatePath)) {
     die("Template not found: " + templatePath + "\nCheck templatePath in config.json.");
   }
-  var batchTemplatePath = path.join(path.dirname(templatePath), "batch-template.ai");
+  var ext = path.extname(templatePath) || ".ai";
+  var batchTemplatePath = path.join(path.dirname(templatePath), "batch-template" + ext);
   fs.copyFileSync(templatePath, batchTemplatePath);
   return batchTemplatePath;
 }
@@ -337,9 +337,14 @@ function cleanupBatchArgs(scriptPath) {
  * @param {string} filePath
  */
 function openInApp(appConfig, filePath) {
-  var jsCode = appConfig.openArgs(filePath);
-  var script = 'tell application "' + appConfig.appName + '" to do javascript ' +
-    JSON.stringify(jsCode);
+  var script;
+  if (appConfig.useDoJavascript === false) {
+    script = appConfig.openArgs(filePath);
+  } else {
+    var jsCode = appConfig.openArgs(filePath);
+    script = 'tell application "' + appConfig.appName + '" to do javascript ' +
+      JSON.stringify(jsCode);
+  }
   execOsascript(script);
 }
 
@@ -353,9 +358,15 @@ function openInApp(appConfig, filePath) {
  * @returns {string}
  */
 function runScript(appConfig, scriptPath) {
-  var jsCode = appConfig.runArgs(scriptPath);
-  var script = 'tell application "' + appConfig.appName + '" to do javascript ' +
-    JSON.stringify(jsCode);
+  var script;
+  if (appConfig.useDoJavascript === false) {
+    script = 'tell application "' + appConfig.appName + '" to ' +
+      appConfig.runArgs(scriptPath);
+  } else {
+    var jsCode = appConfig.runArgs(scriptPath);
+    script = 'tell application "' + appConfig.appName + '" to do javascript ' +
+      JSON.stringify(jsCode);
+  }
   return execOsascript(script);
 }
 
@@ -434,6 +445,11 @@ function shellQuote(str) {
     var picked = await promptChoice(rl, opt.label, opt.choices);
     optionValues[opt.key] = picked.value;
     optionLabels[opt.key] = picked.label;
+  }
+
+  // Pass fileFilter to batch-args if configured
+  if (scriptConfig.fileFilter) {
+    optionValues.fileFilter = scriptConfig.fileFilter;
   }
 
   // ── 3. Folder ──────────────────────────────────────────────────────────────
