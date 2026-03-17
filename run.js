@@ -63,6 +63,7 @@
 
 var fs           = require("fs");
 var path         = require("path");
+var os           = require("os");
 var readline     = require("readline");
 var childProcess = require("child_process");
 
@@ -112,15 +113,12 @@ var APP_CONFIG = {
     }
   },
   photoshop: {
-    appName: "Adobe Photoshop",
-    useDoJavascript: false,
+    appName: "Adobe Photoshop 2026",
     openArgs: function(filePath) {
-      return 'tell application "Adobe Photoshop" to open (POSIX file ' +
-        JSON.stringify(filePath) + ')';
+      return "app.open(File(" + JSON.stringify(filePath) + "));";
     },
     runArgs: function(scriptPath) {
-      return 'do script (POSIX file ' + JSON.stringify(scriptPath) +
-        ') as alias';
+      return "$.evalFile(" + JSON.stringify(scriptPath) + ")";
     }
   }
 };
@@ -303,7 +301,7 @@ function prepareTemplate(templatePath) {
  * @param {object} optionValues  Map of option keys to chosen values.
  * @returns {string}             Path to the written batch-args.json.
  */
-function writeBatchArgs(scriptPath, slug, slugFolder, optionValues) {
+function writeBatchArgs(slug, slugFolder, optionValues) {
   var args = {};
   args.slug       = slug;
   args.slugFolder = slugFolder;
@@ -311,7 +309,7 @@ function writeBatchArgs(scriptPath, slug, slugFolder, optionValues) {
   for (var i = 0; i < keys.length; i++) {
     args[keys[i]] = optionValues[keys[i]];
   }
-  var argsPath = path.join(path.dirname(scriptPath), "batch-args.json");
+  var argsPath = path.join(os.tmpdir(), "batch-args.json");
   fs.writeFileSync(argsPath, JSON.stringify(args, null, 2), "utf8");
   return argsPath;
 }
@@ -319,11 +317,9 @@ function writeBatchArgs(scriptPath, slug, slugFolder, optionValues) {
 /**
  * Remove batch-args.json if it still exists (safety cleanup in case the
  * script failed before consuming the file).
- *
- * @param {string} scriptPath
  */
-function cleanupBatchArgs(scriptPath) {
-  var argsPath = path.join(path.dirname(scriptPath), "batch-args.json");
+function cleanupBatchArgs() {
+  var argsPath = path.join(os.tmpdir(), "batch-args.json");
   if (fs.existsSync(argsPath)) {
     try { fs.unlinkSync(argsPath); } catch (e) {}
   }
@@ -337,14 +333,9 @@ function cleanupBatchArgs(scriptPath) {
  * @param {string} filePath
  */
 function openInApp(appConfig, filePath) {
-  var script;
-  if (appConfig.useDoJavascript === false) {
-    script = appConfig.openArgs(filePath);
-  } else {
-    var jsCode = appConfig.openArgs(filePath);
-    script = 'tell application "' + appConfig.appName + '" to do javascript ' +
-      JSON.stringify(jsCode);
-  }
+  var jsCode = appConfig.openArgs(filePath);
+  var script = 'tell application "' + appConfig.appName + '" to do javascript ' +
+    JSON.stringify(jsCode);
   execOsascript(script);
 }
 
@@ -358,16 +349,52 @@ function openInApp(appConfig, filePath) {
  * @returns {string}
  */
 function runScript(appConfig, scriptPath) {
-  var script;
-  if (appConfig.useDoJavascript === false) {
-    script = 'tell application "' + appConfig.appName + '" to ' +
-      appConfig.runArgs(scriptPath);
-  } else {
-    var jsCode = appConfig.runArgs(scriptPath);
-    script = 'tell application "' + appConfig.appName + '" to do javascript ' +
-      JSON.stringify(jsCode);
-  }
+  var jsCode = appConfig.runArgs(scriptPath);
+  var script = 'tell application "' + appConfig.appName + '" to do javascript ' +
+    JSON.stringify(jsCode);
   return execOsascript(script);
+}
+
+/**
+ * Quit the target Adobe app and wait for it to fully exit.
+ *
+ * @param {object} appConfig  Entry from APP_CONFIG.
+ */
+function quitApp(appConfig) {
+  try {
+    execOsascript('tell application "' + appConfig.appName + '" to quit');
+  } catch (e) {
+    // App may already be closed
+  }
+  // Wait for the process to fully exit (up to 30s)
+  for (var i = 0; i < 30; i++) {
+    try {
+      childProcess.execSync(
+        "pgrep -x " + shellQuote(appConfig.appName),
+        { stdio: "ignore" }
+      );
+      // Still running — wait a second
+      childProcess.execSync("sleep 1");
+    } catch (e) {
+      // pgrep returned non-zero → process is gone
+      return;
+    }
+  }
+}
+
+/**
+ * Launch the target Adobe app and wait for it to be ready.
+ *
+ * @param {object} appConfig  Entry from APP_CONFIG.
+ */
+function launchApp(appConfig) {
+  try {
+    execOsascript('tell application "' + appConfig.appName + '" to activate');
+  } catch (e) {
+    // Ignore launch errors — openInApp will retry
+  }
+  // Give the app a moment to initialise
+  childProcess.execSync("sleep 3");
 }
 
 /**
@@ -548,6 +575,10 @@ function shellQuote(str) {
   var passed = [];
   var failed = [];
 
+  // Restart the app every N slugs to reclaim memory (0 = never)
+  var RESTART_EVERY = scriptConfig.restartEvery || 0;
+  var filesSinceRestart = 0;
+
   for (var i = 0; i < jobs.length; i++) {
     var job       = jobs[i];
     var slugName  = job.slug;
@@ -561,6 +592,14 @@ function shellQuote(str) {
       continue;
     }
 
+    // Restart app to free memory after every RESTART_EVERY slugs
+    if (RESTART_EVERY > 0 && filesSinceRestart >= RESTART_EVERY) {
+      console.log("  ↻ Restarting " + appConfig.appName + " to free memory...");
+      quitApp(appConfig);
+      launchApp(appConfig);
+      filesSinceRestart = 0;
+    }
+
     var overridePath = path.join(path.dirname(templatePath), "overrides", slugName + "-template.ai");
     var hasOverride  = fs.existsSync(overridePath);
     var fileToOpen   = hasOverride ? overridePath : batchTemplatePath;
@@ -569,7 +608,7 @@ function shellQuote(str) {
 
     var argsFilePath = null;
     try {
-      argsFilePath = writeBatchArgs(scriptPath, slugName, job.folder, optionValues);
+      argsFilePath = writeBatchArgs(slugName, job.folder, optionValues);
       openInApp(appConfig, fileToOpen);
       process.stdout.write("running... ");
       var result = runScript(appConfig, scriptPath);
@@ -582,12 +621,13 @@ function shellQuote(str) {
         console.log("done");
         passed.push(slugName);
       }
+      filesSinceRestart++;
     } catch (err) {
       console.log("ERROR");
       console.error("  " + err.message);
       failed.push(slugName);
     } finally {
-      if (argsFilePath) { cleanupBatchArgs(scriptPath); }
+      if (argsFilePath) { cleanupBatchArgs(); }
     }
   }
 

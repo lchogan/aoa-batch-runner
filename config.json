@@ -49,6 +49,55 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Shop Image Export (Photoshop)",
+      "app": "photoshop",
+      "scriptPath": "/Users/lukehogan/Documents/startups/aoa/photoshop/batch-shop-exports.jsx",
+      "templatePath": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/templates/product-image-template.psd",
+      "timeoutSeconds": 600,
+      "defaultFolder": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/exports",
+
+      "slugs": [],
+      "excludedSlugs": [],
+
+      "_comment_fileFilter": "Only process files whose name contains this string (case-insensitive). Empty string matches all files.",
+      "fileFilter": "ASeries",
+
+      "_comment_restartEvery": "Restart the app every N slugs to free memory. 0 = never restart.",
+      "restartEvery": 15,
+
+      "options": [
+        {
+          "key": "format",
+          "label": "Export format",
+          "choices": [
+            { "value": "jpeg", "label": "JPEG" },
+            { "value": "png",  "label": "PNG" },
+            { "value": "webp", "label": "WebP" }
+          ]
+        },
+        {
+          "key": "quality",
+          "label": "Export quality (ignored for PNG — always lossless)",
+          "choices": [
+            { "value": "lossless", "label": "Lossless (PNG always, WebP option)" },
+            { "value": "90",       "label": "90 — High" },
+            { "value": "80",       "label": "80 — Medium-high" },
+            { "value": "70",       "label": "70 — Medium" }
+          ]
+        },
+        {
+          "key": "suffix",
+          "label": "Filename suffix",
+          "choices": [
+            { "value": "-shop",  "label": "-shop (e.g. diagram-shop.jpg)" },
+            { "value": "",       "label": "No suffix (e.g. diagram.jpg)" },
+            { "value": "-print", "label": "-print" },
+            { "value": "-web",   "label": "-web" }
+          ]
+        }
+      ]
     }
   ]
 }
