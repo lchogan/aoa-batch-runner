@@ -5,7 +5,7 @@
     {
       "name": "Airport Diagram Export",
       "app": "illustrator",
-      "scriptPath": "/Users/lukehogan/Documents/startups/aoa/code/export/templates/airport-diagram.jsx",
+      "scriptPath": "/Users/lukehogan/Documents/startups/aoa/code/export/illustrator/templates/airport-diagram.jsx",
       "templatePath": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/templates/template.ai",
       "timeoutSeconds": 600,
       "defaultFolder": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/exports",
@@ -53,12 +53,12 @@
     {
       "name": "Shop Image Export (Photoshop)",
       "app": "photoshop",
-      "scriptPath": "/Users/lukehogan/Documents/startups/aoa/photoshop/batch-shop-exports.jsx",
+      "scriptPath": "/Users/lukehogan/Documents/startups/aoa/code/export/photoshop/batch-shop-exports.jsx",
       "templatePath": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/templates/product-image-template.psd",
       "timeoutSeconds": 600,
       "defaultFolder": "/Users/lukehogan/Documents/startups/aoa/products/collections/airport-diagrams/exports",
 
-      "slugs": [],
+      "slugs": ["mht", "rkd", "pae"],
       "excludedSlugs": [],
 
       "_comment_fileFilter": "Only process files whose name contains this string (case-insensitive). Empty string matches all files.",
